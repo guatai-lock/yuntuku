@@ -59,7 +59,7 @@ public class PictureController {
 
     @Resource
     private StringRedisTemplate stringRedisTemplate;
-
+    //本地缓存
     private final Cache<String, String> LOCAL_CACHE =
             Caffeine.newBuilder().initialCapacity(1024)
                     .maximumSize(10000L)
@@ -279,7 +279,6 @@ public class PictureController {
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
         return ResultUtils.success(true);
     }
-
     @GetMapping("/tag_category")
     public BaseResponse<PictureTagCategory> listPictureTagCategory() {
         PictureTagCategory pictureTagCategory = new PictureTagCategory();
@@ -329,5 +328,4 @@ public class PictureController {
         int uploadCount = pictureService.uploadPictureByBatch(pictureUploadByBatchRequest, loginUser);
         return ResultUtils.success(uploadCount);
     }
-
 }
