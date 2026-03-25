@@ -7,8 +7,10 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.guatai.yuntukubackend.model.entity.User;
 import com.guatai.yuntukubackend.model.vo.PictureVO;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 /**
 * @author 30019713
 * @description 针对表【picture(图片)】的数据库操作Service
@@ -114,5 +116,22 @@ public interface PictureService extends IService<Picture> {
      * @param picture
      */
     void checkPictureAuth(User loginUser, Picture picture);
+
+    /**
+     * 根据图片主色调查询图片
+     * @param spaceId 图片id
+     * @param picColor 图片主色调
+     * @param loginUser 登录用户
+     * @return 脱敏图片信息
+     */
+    List<PictureVO> searchPictureByColor(Long spaceId, String picColor, User loginUser);
+
+    /***
+     * 批量修改图片分类 标签
+     * @param pictureEditByBatchRequest
+     * @param loginUser
+     */
+    @Transactional(rollbackFor = Exception.class)
+    void editPictureByBatch(PictureEditByBatchRequest pictureEditByBatchRequest, User loginUser);
 }
 
