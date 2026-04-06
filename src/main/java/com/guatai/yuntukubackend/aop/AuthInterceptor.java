@@ -1,5 +1,4 @@
 package com.guatai.yuntukubackend.aop;
-
 import com.guatai.yuntukubackend.annotation.AuthCheck;
 import com.guatai.yuntukubackend.exception.BusinessException;
 import com.guatai.yuntukubackend.exception.ErrorCode;
@@ -13,10 +12,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
-
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-
 /**
  * ClassName: AuthInterceptor
  * Package: com.guatai.yuntukubackend.aop

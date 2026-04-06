@@ -60,4 +60,11 @@ public interface SpaceService extends IService<Space> {
      * @return
      */
     Page<SpaceVO> getSpaceVOPage(Page<Space> spacePage, HttpServletRequest request);
+
+    /***
+     * 空间权限校验
+     * @param loginUser
+     * @param space
+     */
+    void checkSpaceAuth(User loginUser, Space space);
 }

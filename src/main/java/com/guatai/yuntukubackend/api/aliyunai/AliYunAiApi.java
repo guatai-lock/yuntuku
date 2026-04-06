@@ -51,6 +51,7 @@ public class AliYunAiApi {
                 .header("X-DashScope-Async", "enable")
                 .header(Header.CONTENT_TYPE, ContentType.JSON.getValue())
                 .body(JSONUtil.toJsonStr(createOutPaintingTaskRequest));
+        //此处括号中的资源一定会释放
         try (HttpResponse httpResponse = httpRequest.execute()) {
             if (!httpResponse.isOk()) {
                 log.error("请求异常：{}", httpResponse.body());
