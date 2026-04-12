@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.guatai.yuntukubackend.exception.BusinessException;
 import com.guatai.yuntukubackend.exception.ErrorCode;
 import com.guatai.yuntukubackend.exception.ThrowUtils;
+import com.guatai.yuntukubackend.manger.sharding.DynamicShardingManager;
 import com.guatai.yuntukubackend.model.dto.space.SpaceAddRequest;
 import com.guatai.yuntukubackend.model.dto.space.SpaceQueryRequest;
 import com.guatai.yuntukubackend.model.entity.Space;
@@ -24,6 +25,7 @@ import com.guatai.yuntukubackend.mapper.SpaceMapper;
 import com.guatai.yuntukubackend.service.SpaceUserService;
 import com.guatai.yuntukubackend.service.UserService;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -52,6 +54,9 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
 
     @Resource
     private SpaceUserService spaceUserService;
+    @Autowired
+    private DynamicShardingManager dynamicShardingManager;
+
     @Override
     public long addSpace(SpaceAddRequest spaceAddRequest, User loginUser) {
         // 在此处将实体类和 DTO 进行转换
@@ -103,6 +108,8 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
                     boolean spaceUserResult = spaceUserService.save(spaceUser);
                     ThrowUtils.throwIf(!spaceUserResult, ErrorCode.OPERATION_ERROR,"创建团队成员记录失败");
                 }
+                //创建分表
+                dynamicShardingManager.createSpacePictureTable(space);
                 // 返回新写入的数据 id
                 return space.getId();
             });

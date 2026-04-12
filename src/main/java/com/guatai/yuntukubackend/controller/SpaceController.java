@@ -10,6 +10,7 @@ import com.guatai.yuntukubackend.constant.UserConstant;
 import com.guatai.yuntukubackend.exception.BusinessException;
 import com.guatai.yuntukubackend.exception.ErrorCode;
 import com.guatai.yuntukubackend.exception.ThrowUtils;
+import com.guatai.yuntukubackend.manger.auth.SpaceUserAuthManager;
 import com.guatai.yuntukubackend.model.dto.space.*;
 import com.guatai.yuntukubackend.model.entity.Space;
 import com.guatai.yuntukubackend.model.entity.User;
@@ -19,6 +20,7 @@ import com.guatai.yuntukubackend.service.SpaceService;
 import com.guatai.yuntukubackend.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.bind.annotation.*;
 
@@ -46,6 +48,8 @@ public class SpaceController {
 
     @Resource
     private SpaceService spaceService;
+    @Autowired
+    private SpaceUserAuthManager spaceUserAuthManager;
 
     @PostMapping("/add")
     public BaseResponse<Long> addSpace(@RequestBody SpaceAddRequest spaceAddRequest, HttpServletRequest request) {
@@ -128,10 +132,14 @@ public class SpaceController {
         // 查询数据库
         Space space = spaceService.getById(id);
         ThrowUtils.throwIf(space == null, ErrorCode.NOT_FOUND_ERROR);
+        SpaceVO spaceVO = spaceService.getSpaceVO(space, request);
+        User loginUser = userService.getLoginUser(request);
+        //返回权限列表，方便前端展示相关权限操作按钮
+        List<String> permissionList = spaceUserAuthManager.getPermissionList(space, loginUser);
+        spaceVO.setPermissionList(permissionList);
         // 获取封装类
-        return ResultUtils.success(spaceService.getSpaceVO(space, request));
+        return ResultUtils.success(spaceVO);
     }
-
     /**
      * 分页获取空间列表（仅管理员可用）
      */

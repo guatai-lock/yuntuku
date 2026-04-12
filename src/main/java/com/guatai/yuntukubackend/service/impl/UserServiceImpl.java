@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.guatai.yuntukubackend.constant.UserConstant;
 import com.guatai.yuntukubackend.exception.BusinessException;
 import com.guatai.yuntukubackend.exception.ErrorCode;
+import com.guatai.yuntukubackend.manger.auth.StpKit;
 import com.guatai.yuntukubackend.mapper.UserMapper;
 import com.guatai.yuntukubackend.model.dto.user.UserQueryRequest;
 import com.guatai.yuntukubackend.model.entity.User;
@@ -76,7 +77,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         }
         return user.getId();
     }
-
     @Override
     public LoginUserVO userLogin(String userAccount, String userPassword, HttpServletRequest request) {
         // 1. 校验
@@ -101,11 +101,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             log.info("user login failed, userAccount cannot match userPassword");
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户不存在或者密码错误");
         }
-        // 4. 保存用户的登录态
+        // 4. 保存用户的登录态,记录用户登录态到sa-token,便于空间鉴权时使用
+        //注意保证该用户信息与springSession中的过期时间一致
         request.getSession().setAttribute(UserConstant.USER_LOGIN_STATE, user);
+        StpKit.SPACE.login(user.getId());
+        StpKit.SPACE.getSession().set(UserConstant.USER_LOGIN_STATE,user);
         return this.getLoginUserVO(user);
     }
-
     /**
      * 获取加密后的密码
      *
@@ -118,7 +120,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         final String SALT = "yupi";
         return DigestUtils.md5DigestAsHex((SALT + userPassword).getBytes());
     }
-
     @Override
     public User getLoginUser(HttpServletRequest request) {
         // 判断是否已经登录
