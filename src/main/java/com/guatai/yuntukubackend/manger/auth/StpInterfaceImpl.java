@@ -65,7 +65,7 @@ public class StpInterfaceImpl implements StpInterface {
     @Resource
     private SpaceService spaceService;
     /**
-     * 从请求中获取上下文对象
+     * 从请求中获取上下文对象,用于区分请求中的id属于哪个表的id
      */
     private SpaceUserAuthContext getAuthContextByRequest() {
         HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
@@ -73,17 +73,22 @@ public class StpInterfaceImpl implements StpInterface {
         SpaceUserAuthContext authRequest;
         // 兼容 get 和 post 操作
         if (ContentType.JSON.getValue().equals(contentType)) {
+            //post请求从请求体中拿到参数
             String body = ServletUtil.getBody(request);
             authRequest = JSONUtil.toBean(body, SpaceUserAuthContext.class);
         } else {
+            //get请求从url中拿到参数
             Map<String, String> paramMap = ServletUtil.getParamMap(request);
             authRequest = BeanUtil.toBean(paramMap, SpaceUserAuthContext.class);
         }
         // 根据请求路径区分 id 字段的含义
         Long id = authRequest.getId();
         if (ObjUtil.isNotNull(id)) {
+            //拿到完整URI路径 /api/picture/123
             String requestUri = request.getRequestURI();
+            //去掉contexPath/ 得到 picture/123
             String partUri = requestUri.replace(contextPath + "/", "");
+            //得到picture
             String moduleName = StrUtil.subBefore(partUri, "/", false);
             switch (moduleName) {
                 case "picture":
@@ -100,6 +105,9 @@ public class StpInterfaceImpl implements StpInterface {
         }
         return authRequest;
     }
+    /**
+     * 返回一个账号所拥有的权限码集合
+     */
     public List<String> getPermissionList(Object loginId, String loginType) {
         // 判断 loginType，仅对类型为 "space" 进行权限校验
         if (!StpKit.SPACE_TYPE.equals(loginType)) {
@@ -194,11 +202,6 @@ public class StpInterfaceImpl implements StpInterface {
             return spaceUserAuthManager.getPermissionsByRole(spaceUser.getSpaceRole());
         }
     }
-
-    /**
-     * 返回一个账号所拥有的权限码集合
-     */
-
     /**
      * 返回一个账号所拥有的角色标识集合 (权限与角色可分开校验)
      */

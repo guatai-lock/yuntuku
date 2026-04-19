@@ -32,7 +32,6 @@ public class PictureShardingAlgorithm implements StandardShardingAlgorithm<Long>
             return logicTableName;
         }
     }
-
     @Override
     public Collection<String> doSharding(Collection<String> collection, RangeShardingValue<Long> rangeShardingValue) {
         return new ArrayList<>();

@@ -1,6 +1,7 @@
 package com.guatai.yuntukubackend.controller;
 
 import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.guatai.yuntukubackend.annotation.AuthCheck;
 import com.guatai.yuntukubackend.common.BaseResponse;
@@ -13,10 +14,13 @@ import com.guatai.yuntukubackend.exception.ThrowUtils;
 import com.guatai.yuntukubackend.manger.auth.SpaceUserAuthManager;
 import com.guatai.yuntukubackend.model.dto.space.*;
 import com.guatai.yuntukubackend.model.entity.Space;
+import com.guatai.yuntukubackend.model.entity.SpaceUser;
 import com.guatai.yuntukubackend.model.entity.User;
 import com.guatai.yuntukubackend.model.enums.SpaceLevelEnum;
+import com.guatai.yuntukubackend.model.enums.SpaceTypeEnum;
 import com.guatai.yuntukubackend.model.vo.SpaceVO;
 import com.guatai.yuntukubackend.service.SpaceService;
+import com.guatai.yuntukubackend.service.SpaceUserService;
 import com.guatai.yuntukubackend.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -48,8 +52,11 @@ public class SpaceController {
 
     @Resource
     private SpaceService spaceService;
-    @Autowired
+    @Resource
     private SpaceUserAuthManager spaceUserAuthManager;
+
+    @Resource
+    private SpaceUserService spaceUserService;
 
     @PostMapping("/add")
     public BaseResponse<Long> addSpace(@RequestBody SpaceAddRequest spaceAddRequest, HttpServletRequest request) {
@@ -58,7 +65,6 @@ public class SpaceController {
         long newId = spaceService.addSpace(spaceAddRequest, loginUser);
         return ResultUtils.success(newId);
     }
-
     @PostMapping("/delete")
     public BaseResponse<Boolean> deleteSpace(@RequestBody DeleteRequest deleteRequest
             , HttpServletRequest request) {
@@ -72,6 +78,11 @@ public class SpaceController {
         ThrowUtils.throwIf(oldSpace == null, ErrorCode.NOT_FOUND_ERROR);
         // 仅本人或者管理员可删除
         spaceService.checkSpaceAuth(loginUser,oldSpace);
+        //如果是团队空间，关联删除相关团队成员数据(删除所有在同一spaceId下的团队空间的成员记录)
+        if(oldSpace.getSpaceType() == SpaceTypeEnum.TEAM.getValue()){
+            boolean remove = spaceUserService.remove(new LambdaQueryWrapper<SpaceUser>().eq(SpaceUser::getSpaceId, oldSpace.getId()));
+            ThrowUtils.throwIf(!remove, ErrorCode.NOT_FOUND_ERROR,"删除关联团队空间成员失败");
+        }
         // 操作数据库
         boolean result = spaceService.removeById(id);
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);

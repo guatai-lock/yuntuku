@@ -1,5 +1,4 @@
 package com.guatai.yuntukubackend.controller;
-
 import cn.hutool.core.util.ObjectUtil;
 import com.guatai.yuntukubackend.common.BaseResponse;
 import com.guatai.yuntukubackend.common.DeleteRequest;
@@ -23,11 +22,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
-
 /**
  * ClassName: s
  * Package: com.guatai.yuntukubackend.controller
@@ -75,7 +72,6 @@ public class SpaceUserController {
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
         return ResultUtils.success(true);
     }
-
     /**
      * 查询某个成员在某个空间的信息
      */

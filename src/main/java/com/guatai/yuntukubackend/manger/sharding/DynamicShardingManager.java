@@ -11,7 +11,6 @@ import org.apache.shardingsphere.mode.manager.ContextManager;
 import org.apache.shardingsphere.sharding.api.config.ShardingRuleConfiguration;
 import org.apache.shardingsphere.sharding.api.config.rule.ShardingTableRuleConfiguration;
 import org.apache.shardingsphere.sharding.rule.ShardingRule;
-import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import javax.sql.DataSource;
@@ -28,7 +27,7 @@ import java.util.stream.Collectors;
  * Description:
  *
  */
-@Component
+//@Component
 @Slf4j
 public class DynamicShardingManager {
 
@@ -47,32 +46,31 @@ public class DynamicShardingManager {
         log.info("初始化动态分表配置...");
         updateShardingTableNodes();
     }
-
     /**
      * 获取所有动态表名，包括初始表 picture 和分表 picture_{spaceId}
      */
     private Set<String> fetchAllPictureTableNames() {
-        // 为了测试方便，直接对所有团队空间分表（实际上线改为仅对旗舰版生效）
+        // 为了测试方便，可直接对所有团队空间分表（实际上线改为仅对旗舰版生效）
         Set<Long> spaceIds = spaceService.lambdaQuery()
                 .eq(Space::getSpaceType, SpaceTypeEnum.TEAM.getValue())
+                .eq(Space ::getSpaceLevel,SpaceLevelEnum.FLAGSHIP.getValue())//仅对旗舰版生效
                 .list()
                 .stream()
                 .map(Space::getId)
                 .collect(Collectors.toSet());
         Set<String> tableNames = spaceIds.stream()
                 .map(spaceId -> LOGIC_TABLE_NAME + "_" + spaceId)
-                .collect(Collectors.toSet());
+                .collect(Collectors.toSet());//添加分表命名
         tableNames.add(LOGIC_TABLE_NAME); // 添加初始逻辑表
         return tableNames;
     }
-
     /**
      * 更新 ShardingSphere 的 actual-data-nodes 动态表名配置
      */
     private void updateShardingTableNodes() {
         Set<String> tableNames = fetchAllPictureTableNames();
         String newActualDataNodes = tableNames.stream()
-                .map(tableName -> "yu_picture." + tableName) // 确保前缀合法
+                .map(tableName -> "yuntuku." + tableName) // 确保前缀合法
                 .collect(Collectors.joining(","));
         log.info("动态分表 actual-data-nodes 配置: {}", newActualDataNodes);
 
@@ -82,7 +80,6 @@ public class DynamicShardingManager {
                 .getDatabases()
                 .get(DATABASE_NAME)
                 .getRuleMetaData();
-
         Optional<ShardingRule> shardingRule = ruleMetaData.findSingleRule(ShardingRule.class);
         if (shardingRule.isPresent()) {
             ShardingRuleConfiguration ruleConfig = (ShardingRuleConfiguration) shardingRule.get().getConfiguration();

@@ -40,7 +40,7 @@ public @interface SaSpaceCheckPermission {
      *
      * @return 验证模式
      */
-//    @AliasFor(annotation = SaCheckPermission.class)
+    @AliasFor(annotation = SaCheckPermission.class)
     SaMode mode() default SaMode.AND;
 
     /**
