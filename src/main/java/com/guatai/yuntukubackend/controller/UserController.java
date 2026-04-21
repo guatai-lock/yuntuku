@@ -161,7 +161,7 @@ public class UserController {
         //下面的代码创建了page查询对象并根据拼接的查询条件进行了查询并得到了结果
         //userService.page(Page, QueryWrapper)：执行分页查询，
         // 返回Page<User>对象（包含「当前页用户列表（records）
-        // + 总记录数（total）+ 总页数（pages）」等分页信息）；
+        // + 总记录数（total）+ 总页数（pages）"等分页信息）；
         Page<User> userPage = userService.page(new Page<>(current, pageSize),
                 userService.getQueryWrapper(userQueryRequest));
         //初始化UserVO分页对象，复用分页参数和总记录数
@@ -171,5 +171,15 @@ public class UserController {
         // 3. 将脱敏后的列表设置到分页对象中
         userVOPage.setRecords(userVOList);
         return ResultUtils.success(userVOPage);
+    }
+
+    /**
+     * 兑换VIP会员
+     */
+    @PostMapping("/exchange/vip")
+    public BaseResponse<Boolean> exchangeVip(@RequestBody VipExchangeRequest vipExchangeRequest, HttpServletRequest request) {
+        ThrowUtils.throwIf(vipExchangeRequest == null, ErrorCode.PARAMS_ERROR);
+        boolean result = userService.exchangeVipForMember(vipExchangeRequest, request);
+        return ResultUtils.success(result);
     }
 }

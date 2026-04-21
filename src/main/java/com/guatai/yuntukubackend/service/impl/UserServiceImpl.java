@@ -14,6 +14,7 @@ import com.guatai.yuntukubackend.manger.auth.StpKit;
 import com.guatai.yuntukubackend.mapper.UserMapper;
 import com.guatai.yuntukubackend.model.dto.user.UserQueryRequest;
 import com.guatai.yuntukubackend.model.dto.user.VipCode;
+import com.guatai.yuntukubackend.model.dto.user.VipExchangeRequest;
 import com.guatai.yuntukubackend.model.entity.User;
 import com.guatai.yuntukubackend.model.enums.UserRoleEnum;
 import com.guatai.yuntukubackend.model.vo.LoginUserVO;
@@ -26,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 /**
@@ -226,9 +228,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public boolean exchangeVipForMember(String vipCode, HttpServletRequest request) {
+    public boolean exchangeVipForMember(VipExchangeRequest vipExchangeRequest, HttpServletRequest request) {
         // 1. 校验参数
-        if (StrUtil.isBlank(vipCode)) {
+        if (StrUtil.isBlank(vipExchangeRequest.getVipCode())) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "兑换码不能为空");
         }
 
@@ -236,34 +238,45 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         User currentLoginUser = getLoginUser(request);
 
         // 3. 验证兑换码
-        VipCode validVipCode = VipCodeUtil.getValidVipCode(vipCode.trim());
+        VipCode validVipCode = VipCodeUtil.getValidVipCode(vipExchangeRequest.getVipCode().trim());
 
-
-        // 4. 构建更新条件和用户信息
+        // 4. 判断用户是否已经是VIP
+        boolean isAlreadyVip = UserRoleEnum.VIP.getValue().equals(currentLoginUser.getUserRole());
+        
+        // 5. 构建更新条件和用户信息
         QueryWrapper<User> updateWrapper = new QueryWrapper<>();
-        updateWrapper.eq("id", currentLoginUser.getId())
-                .ne("userRole", UserRoleEnum.VIP.getValue());
-
+        updateWrapper.eq("id", currentLoginUser.getId());
+        // 如果不是VIP，需要排除已是VIP的情况（防止并发问题）
+        if (!isAlreadyVip) {
+            updateWrapper.ne("userRole", UserRoleEnum.VIP.getValue());
+        }
         User updateUser = new User();
-        // 使用 Hutool 的 DateUtil 计算一年后的时间
-        updateUser.setVipExpireTime(DateUtil.offsetDay(DateUtil.date(), 365));
+        // 根据用户当前状态计算VIP过期时间
+        Date expireTime;
+        if (isAlreadyVip && currentLoginUser.getVipExpireTime() != null 
+                && currentLoginUser.getVipExpireTime().after(DateUtil.date())) {
+            // 已是VIP且未过期，在原有日期上续期
+            expireTime = DateUtil.offsetDay(currentLoginUser.getVipExpireTime(), 365);
+            log.info("用户 {} 是VIP会员，进行续期操作，原过期时间: {}", currentLoginUser.getId(), currentLoginUser.getVipExpireTime());
+        } else {
+            // 不是VIP或已过期，从当前时间计算一年
+            expireTime = DateUtil.offsetDay(DateUtil.date(), 365);
+        }
+        updateUser.setVipExpireTime(expireTime);
         updateUser.setUserRole(UserRoleEnum.VIP.getValue());
         updateUser.setVipCode(validVipCode.getCode());
         // 使用 Hutool 的 IdUtil 生成唯一VIP编号
         updateUser.setVipNumber(Long.parseLong(IdUtil.fastSimpleUUID().replaceAll("-", "").substring(0, 16), 16));
         updateUser.setEditTime(DateUtil.date());
-
         // 6. 执行更新
         if (this.baseMapper.update(updateUser, updateWrapper) == 0) {
-            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "更新用户信息失败");
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, isAlreadyVip ? "VIP续期失败" : "更新用户信息失败");
         }
-
         // 7. 重新查询更新后的用户信息
         User updatedUser = this.getById(currentLoginUser.getId());
         if (updatedUser == null) {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "用户信息更新后查询失败");
         }
-
         // 8. 异步标记兑换码为已使用（内联简单逻辑）
         new Thread(() -> {
             try {
@@ -274,7 +287,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
                 log.error("异步标记兑换码失败，兑换码: {}", validVipCode.getCode(), e);
             }
         }).start();
-
         // 9. 更新登录态（内联简单逻辑）
         try {
             request.getSession().setAttribute(UserConstant.USER_LOGIN_STATE, updatedUser);
@@ -284,20 +296,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         } catch (Exception e) {
             log.error("更新用户 {} 登录态失败", updatedUser.getId(), e);
         }
-
-        log.info("用户 {} 兑换VIP成功，兑换码: {}", currentLoginUser.getId(), validVipCode.getCode());
+        log.info("用户 {} 兑换VIP成功，兑换码: {}，过期时间: {}", currentLoginUser.getId(), validVipCode.getCode(), expireTime);
         return true;
-    }
-
-    /**
-     * 检查兑换码是否有效
-     */
-    @Override
-    public boolean checkVipCodeValidity(String vipCode) {
-        if (StrUtil.isBlank(vipCode)) {
-            return false;
-        }
-        return VipCodeUtil.isValidVipCode(vipCode.trim());
     }
     @Override
     public boolean isAdmin(User user) {

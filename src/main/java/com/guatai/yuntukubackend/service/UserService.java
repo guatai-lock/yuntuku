@@ -2,6 +2,7 @@ package com.guatai.yuntukubackend.service;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.guatai.yuntukubackend.model.dto.user.UserQueryRequest;
+import com.guatai.yuntukubackend.model.dto.user.VipExchangeRequest;
 import com.guatai.yuntukubackend.model.entity.User;
 import com.guatai.yuntukubackend.model.vo.LoginUserVO;
 import com.guatai.yuntukubackend.model.vo.UserVO;
@@ -99,9 +100,9 @@ public interface UserService extends IService<User> {
      * @return
      */
     @Transactional(rollbackFor = Exception.class)
-    boolean exchangeVipForMember(String vipCode, HttpServletRequest request);
+    boolean exchangeVipForMember(VipExchangeRequest vipExchangeRequest, HttpServletRequest request);
 
-    boolean checkVipCodeValidity(String vipCode);
+
 
     /**
      * 是否为管理员
