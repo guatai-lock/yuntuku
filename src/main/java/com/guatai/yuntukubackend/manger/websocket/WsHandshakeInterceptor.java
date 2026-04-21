@@ -26,24 +26,24 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * ClassName: a
+ * ClassName:
  * Package: com.guatai.yuntukubackend.manger.websocket
- * Description:
+ * Description：WebSocket 握手拦截器
  *
  */
 @Component
 @Slf4j
 public class WsHandshakeInterceptor implements HandshakeInterceptor {
-
+    // 注入用户服务
     @Resource
     private UserService userService;
-
+    // 注入图片服务
     @Resource
     private PictureService pictureService;
-
+    // 注入空间服务
     @Resource
     private SpaceService spaceService;
-
+    // 注入空间用户权限管理器
     @Resource
     private SpaceUserAuthManager spaceUserAuthManager;
 
@@ -57,6 +57,7 @@ public class WsHandshakeInterceptor implements HandshakeInterceptor {
                 log.error("缺少图片参数，拒绝握手");
                 return false;
             }
+            // 获取登录用户
             User loginUser = userService.getLoginUser(servletRequest);
             if (ObjUtil.isEmpty(loginUser)) {
                 log.error("用户未登录，拒绝握手");

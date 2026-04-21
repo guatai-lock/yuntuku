@@ -1,5 +1,4 @@
 package com.guatai.yuntukubackend;
-
 import org.apache.shardingsphere.spring.boot.ShardingSphereAutoConfiguration;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
