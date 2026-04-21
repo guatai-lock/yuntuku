@@ -10,6 +10,10 @@ package com.guatai.yuntukubackend.model.enums;
 import cn.hutool.core.util.ObjUtil;
 import lombok.Getter;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
 /**
         * 用户角色枚举
  */
@@ -17,7 +21,8 @@ import lombok.Getter;
 public enum UserRoleEnum {
 
     USER("用户", "user"),
-    ADMIN("管理员", "admin");
+    ADMIN("管理员", "admin"),
+    VIP("vip", "VIP会员");
 
     private final String text;
 
@@ -44,5 +49,13 @@ public enum UserRoleEnum {
             }
         }
         return null;
+    }
+    /**
+     * 获取值列表
+     *
+     * @return
+     */
+    public static List<String> getValues() {
+        return Arrays.stream(values()).map(item -> item.value).collect(Collectors.toList());
     }
 }

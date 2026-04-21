@@ -15,6 +15,9 @@
         <result property="editTime" column="editTime" jdbcType="TIMESTAMP"/>
         <result property="createTime" column="createTime" jdbcType="TIMESTAMP"/>
         <result property="updateTime" column="updateTime" jdbcType="TIMESTAMP"/>
+        <result property="vipExpireTime" column="vipExpireTime" jdbcType="TIMESTAMP"/>
+        <result property="vipCode" column="vipCode" jdbcType="VARCHAR"/>
+        <result property="vipNumber" column="vipNumber" jdbcType="BIGINT"/>
         <result property="isDelete" column="isDelete" jdbcType="TINYINT"/>
     </resultMap>
 
@@ -22,6 +25,7 @@
         id,userAccount,userPassword,
         userName,userAvatar,userProfile,
         userRole,editTime,createTime,
-        updateTime,isDelete
+        updateTime,vipExpireTime,vipCode,
+        vipNumber,isDelete
     </sql>
 </mapper>

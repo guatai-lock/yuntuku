@@ -5,6 +5,8 @@ import com.guatai.yuntukubackend.model.dto.user.UserQueryRequest;
 import com.guatai.yuntukubackend.model.entity.User;
 import com.guatai.yuntukubackend.model.vo.LoginUserVO;
 import com.guatai.yuntukubackend.model.vo.UserVO;
+import org.springframework.transaction.annotation.Transactional;
+
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 /**
@@ -89,6 +91,18 @@ public interface UserService extends IService<User> {
      * @return
      */
     QueryWrapper<User> getQueryWrapper(UserQueryRequest userQueryRequest);
+    /**
+     * 会员兑换
+     *
+     * @param vipCode
+     * @param request
+     * @return
+     */
+    @Transactional(rollbackFor = Exception.class)
+    boolean exchangeVipForMember(String vipCode, HttpServletRequest request);
+
+    boolean checkVipCodeValidity(String vipCode);
+
     /**
      * 是否为管理员
      *
