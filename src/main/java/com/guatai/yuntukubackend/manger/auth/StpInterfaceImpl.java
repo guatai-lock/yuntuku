@@ -1,12 +1,10 @@
 package com.guatai.yuntukubackend.manger.auth;
-
 /**
  * ClassName: a
  * Package: com.guatai.yuntukubackend.manger.auth
  * Description:
  *
  */
-
 import cn.dev33.satoken.stp.StpInterface;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjUtil;
@@ -35,13 +33,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
-
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
-
 import static com.guatai.yuntukubackend.constant.UserConstant.USER_LOGIN_STATE;
-
 /**
  * 自定义权限加载接口实现类
  */
@@ -84,11 +79,11 @@ public class StpInterfaceImpl implements StpInterface {
         // 根据请求路径区分 id 字段的含义
         Long id = authRequest.getId();
         if (ObjUtil.isNotNull(id)) {
-            //拿到完整URI路径 /api/picture/123
+            //拿到完整URI路径 /api/picture/edit
             String requestUri = request.getRequestURI();
-            //去掉contexPath/ 得到 picture/123
+            //去掉contexPath/ 得到 picture/edit
             String partUri = requestUri.replace(contextPath + "/", "");
-            //得到picture
+            //得到picture subbefore为截取分隔符之前的字符串（不包括分隔符）
             String moduleName = StrUtil.subBefore(partUri, "/", false);
             switch (moduleName) {
                 case "picture":
@@ -113,7 +108,7 @@ public class StpInterfaceImpl implements StpInterface {
         if (!StpKit.SPACE_TYPE.equals(loginType)) {
             return new ArrayList<>();
         }
-        // 管理员权限，表示权限校验通过
+        // 定义管理员权限，表示权限校验通过
         List<String> ADMIN_PERMISSIONS = spaceUserAuthManager.getPermissionsByRole(SpaceRoleEnum.ADMIN.getValue());
         // 获取上下文对象
         SpaceUserAuthContext authContext = getAuthContextByRequest();
@@ -148,11 +143,15 @@ public class StpInterfaceImpl implements StpInterface {
                 return new ArrayList<>();
             }
             // 这里会导致管理员在私有空间没有权限，可以再查一次库处理
+            if( userService.isAdmin(loginUser)){
+                return ADMIN_PERMISSIONS;
+            }
             return spaceUserAuthManager.getPermissionsByRole(loginSpaceUser.getSpaceRole());
+
         }
         // 如果没有 spaceUserId，尝试通过 spaceId 或 pictureId 获取 Space 对象并处理
         Long spaceId = authContext.getSpaceId();
-        if (spaceId == null) {
+        if (spaceId == null) {//上下文没有提供spaceId
             // 如果没有 spaceId，通过 pictureId 获取 Picture 对象和 Space 对象
             Long pictureId = authContext.getPictureId();
             // 图片 id 也没有，则默认通过权限校验
@@ -167,7 +166,7 @@ public class StpInterfaceImpl implements StpInterface {
                 throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "未找到图片信息");
             }
             spaceId = picture.getSpaceId();
-            // 公共图库，仅本人或管理员可操作
+            // 公共图库，仅本人或管理员可操作,没查到spaceId
             if (spaceId == null) {
                 if (picture.getUserId().equals(userId) || userService.isAdmin(loginUser)) {
                     return ADMIN_PERMISSIONS;
@@ -177,7 +176,7 @@ public class StpInterfaceImpl implements StpInterface {
                 }
             }
         }
-        // 获取 Space 对象
+        // 获取 Space 对象（spaceId存在）
         Space space = spaceService.getById(spaceId);
         if (space == null) {
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "未找到空间信息");
@@ -224,6 +223,5 @@ public class StpInterfaceImpl implements StpInterface {
                 // 检查是否所有字段都为空
                 .allMatch(ObjectUtil::isEmpty);
     }
-
 }
 

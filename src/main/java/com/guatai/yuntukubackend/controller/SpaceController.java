@@ -146,7 +146,7 @@ public class SpaceController {
         SpaceVO spaceVO = spaceService.getSpaceVO(space, request);
         User loginUser = userService.getLoginUser(request);
         //返回权限列表，方便前端展示相关权限操作按钮
-        List<String> permissionList = spaceUserAuthManager.getPermissionList(space, loginUser);
+        List<String> permissionList = spaceUserAuthManager.getPermissionListForWebsite(space, loginUser);
         spaceVO.setPermissionList(permissionList);
         // 获取封装类
         return ResultUtils.success(spaceVO);

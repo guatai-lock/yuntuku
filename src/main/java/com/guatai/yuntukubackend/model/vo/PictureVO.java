@@ -115,7 +115,7 @@ public class PictureVO implements Serializable {
     private String picColor;
 
     /**
-     * 权限列表
+     * 关联返回权限列表，方便前端展示对应操作按钮
      */
     private List<String> permissionList = new ArrayList<>();
 

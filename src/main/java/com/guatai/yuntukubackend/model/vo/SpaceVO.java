@@ -83,7 +83,7 @@ public class SpaceVO implements Serializable {
     private Integer spaceType;
 
     /**
-     * 权限列表
+     * 关联返回用户权限列表
      */
     private List<String> permissionList = new ArrayList<>();
 

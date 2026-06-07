@@ -1,0 +1,5 @@
+[
+  {"code": "TEST-CODE-001", "hasUsed": false},
+  {"code": "TEST-CODE-002", "hasUsed": false},
+  {"code": "TEST-CODE-003", "hasUsed": true}
+]

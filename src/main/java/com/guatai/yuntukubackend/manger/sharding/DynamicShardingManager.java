@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 /**
  * ClassName: a
  * Package: com.guatai.yuntukubackend.manger.sharding
@@ -133,6 +132,5 @@ public class DynamicShardingManager {
             }
         }
     }
-
 }
 

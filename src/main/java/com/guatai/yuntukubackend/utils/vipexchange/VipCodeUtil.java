@@ -1,4 +1,4 @@
-package com.guatai.yuntukubackend.utils;
+package com.guatai.yuntukubackend.utils.vipexchange;
 
 /**
  * ClassName: a
@@ -6,7 +6,6 @@ package com.guatai.yuntukubackend.utils;
  * Description:
  *
  */
-
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.resource.ClassPathResource;
 import cn.hutool.core.io.resource.ResourceUtil;
@@ -15,14 +14,12 @@ import cn.hutool.json.JSONUtil;
 import com.guatai.yuntukubackend.constant.UserConstant;
 import com.guatai.yuntukubackend.exception.BusinessException;
 import com.guatai.yuntukubackend.exception.ErrorCode;
-
 import com.guatai.yuntukubackend.model.dto.user.VipCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.Assert;
-
-
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * VIP兑换工具类（精简版）
@@ -30,13 +27,16 @@ import java.util.concurrent.locks.ReentrantLock;
 @Slf4j
 public class VipCodeUtil {
 
-    private static final ReentrantLock FILE_LOCK = new ReentrantLock();
+    // 读写锁：读共享，写互斥
+    private static final ReentrantReadWriteLock RW_LOCK = new ReentrantReadWriteLock();
+    private static final ReentrantReadWriteLock.ReadLock READ_LOCK = RW_LOCK.readLock();
+    private static final ReentrantReadWriteLock.WriteLock WRITE_LOCK = RW_LOCK.writeLock();
 
     /**
      * 获取所有VIP兑换码
      */
     public static List<VipCode> getAllVipCodes() {
-        FILE_LOCK.lock();
+        READ_LOCK.lock();
         try {
             // 使用 Hutool 的 ResourceUtil 读取 classpath 资源
             String vipCodeJson = ResourceUtil.readUtf8Str(UserConstant.VIP_CODE_FILE_PATH);
@@ -50,17 +50,18 @@ public class VipCodeUtil {
             log.error("读取VIP兑换码文件失败", e);
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "读取兑换码文件失败");
         } finally {
-            FILE_LOCK.unlock();
+            READ_LOCK.unlock();
         }
     }
 
     /**
      * 保存VIP兑换码到文件
+     *  生产环境无法写入文件,改为数据库实现
      */
     public static void saveVipCodesToFile(List<VipCode> vipCodes) {
         Assert.notEmpty(vipCodes, "VIP兑换码列表不能为空");
 
-        FILE_LOCK.lock();
+        WRITE_LOCK.lock();
         try {
             ClassPathResource resource = new ClassPathResource(UserConstant.VIP_CODE_FILE_PATH);
             FileUtil.writeUtf8String(JSONUtil.toJsonStr(vipCodes), resource.getFile());
@@ -68,10 +69,9 @@ public class VipCodeUtil {
             log.error("保存VIP兑换码文件失败", e);
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "保存兑换码文件失败");
         } finally {
-            FILE_LOCK.unlock();
+            WRITE_LOCK.unlock();
         }
     }
-
     /**
      * 检查兑换码是否有效
      */
@@ -92,7 +92,7 @@ public class VipCodeUtil {
      * 标记兑换码为已使用
      */
     public static void markVipCodeAsUsed(String vipCode) {
-        FILE_LOCK.lock();
+        WRITE_LOCK.lock();
         try {
             List<VipCode> vipCodes = getAllVipCodes();
             boolean found = vipCodes.stream()
@@ -110,10 +110,9 @@ public class VipCodeUtil {
 
             saveVipCodesToFile(vipCodes);
         } finally {
-            FILE_LOCK.unlock();
+            WRITE_LOCK.unlock();
         }
     }
-
     /**
      * 获取有效的兑换码
      */
@@ -121,7 +120,6 @@ public class VipCodeUtil {
         if (StrUtil.isBlank(vipCode)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "兑换码不能为空");
         }
-
         List<VipCode> vipCodes = getAllVipCodes();
         return vipCodes.stream()
                 .filter(code -> vipCode.equals(code.getCode()) && !code.isHasUsed())

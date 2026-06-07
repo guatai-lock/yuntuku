@@ -1,10 +1,7 @@
 package com.guatai.yuntukubackend.config;
-
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-
 import java.util.concurrent.TimeUnit;
-
 /**
  * ClassName: LocalCache
  * Package: com.guatai.yuntukubackend.config
@@ -18,5 +15,4 @@ public class LocalCache {
                     // 缓存 5 分钟移除
                     .expireAfterWrite(5L, TimeUnit.MINUTES)
                     .build();
-
 }

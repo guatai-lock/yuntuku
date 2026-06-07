@@ -20,7 +20,7 @@ import com.guatai.yuntukubackend.model.enums.UserRoleEnum;
 import com.guatai.yuntukubackend.model.vo.LoginUserVO;
 import com.guatai.yuntukubackend.model.vo.UserVO;
 import com.guatai.yuntukubackend.service.UserService;
-import com.guatai.yuntukubackend.utils.VipCodeUtil;
+import com.guatai.yuntukubackend.utils.vipexchange.VipCodeUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -224,7 +224,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         return queryWrapper;
     }
     /**
-     * 兑换会员（简化版，内联简单逻辑）
+     * 兑换会员
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -277,7 +277,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         if (updatedUser == null) {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "用户信息更新后查询失败");
         }
-        // 8. 异步标记兑换码为已使用（内联简单逻辑）
+        // 8. 异步标记兑换码为已使用
         new Thread(() -> {
             try {
                 Thread.sleep(500); // 等待事务提交

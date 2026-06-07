@@ -22,7 +22,7 @@ import java.util.List;
  * ClassName: a
  * Package: com.guatai.yuntukubackend.manger.auth
  * Description:
- *加载配置文件到对象
+ * 加载配置文件到对象,根据角色获得权限列表，返回权限列表给前端
  */
 @Component
 public class SpaceUserAuthManager {
@@ -57,11 +57,20 @@ public class SpaceUserAuthManager {
         }
         return role.getPermissions();
     }
-    public List<String> getPermissionList(Space space, User loginUser) {
+
+    /**
+     * 此方法将用户具有的权限列表返回给前端，
+     * 方便前端展示对应权限相关操作按钮（与自定义权限校验逻辑的getpermissionlist不同）
+     * @param space 空间对象
+     * @param space
+     * @param loginUser
+     * @return
+     */
+    public List<String> getPermissionListForWebsite(Space space, User loginUser) {
         if (loginUser == null) {
             return new ArrayList<>();
         }
-        // 管理员权限
+        // 定义管理员权限常量
         List<String> ADMIN_PERMISSIONS = getPermissionsByRole(SpaceRoleEnum.ADMIN.getValue());
         // 公共图库
         if (space == null) {
@@ -97,6 +106,5 @@ public class SpaceUserAuthManager {
         }
         return new ArrayList<>();
     }
-
 }
 

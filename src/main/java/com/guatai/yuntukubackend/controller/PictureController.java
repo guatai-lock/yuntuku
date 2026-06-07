@@ -77,9 +77,9 @@ public class PictureController {
                     // 缓存 5 分钟移除
                     .expireAfterWrite(5L, TimeUnit.MINUTES)
                     .build();
-    @Autowired
+    @Resource
     private StpKit stpKit;
-    @Autowired
+    @Resource
     private SpaceUserAuthManager spaceUserAuthManager;
 
     /**
@@ -175,7 +175,7 @@ public class PictureController {
         }
         User loginUser = userService.getLoginUser(request);
         //返回权限列表，方便前端展示相关权限操作按钮
-        List<String> permissionList = spaceUserAuthManager.getPermissionList(space, loginUser);
+        List<String> permissionList = spaceUserAuthManager.getPermissionListForWebsite(space, loginUser);
         // 获取封装类
         PictureVO pictureVO = pictureService.getPictureVO(picture, request);
         pictureVO.setPermissionList(permissionList);

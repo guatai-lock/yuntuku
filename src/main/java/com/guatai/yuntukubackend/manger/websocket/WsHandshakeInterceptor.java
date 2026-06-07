@@ -1,5 +1,4 @@
 package com.guatai.yuntukubackend.manger.websocket;
-
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
 import com.guatai.yuntukubackend.constant.SpaceUserPermissionConstant;
@@ -19,7 +18,6 @@ import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.server.HandshakeInterceptor;
-
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -82,7 +80,7 @@ public class WsHandshakeInterceptor implements HandshakeInterceptor {
                     return false;
                 }
             }
-            List<String> permissionList = spaceUserAuthManager.getPermissionList(space, loginUser);
+            List<String> permissionList = spaceUserAuthManager.getPermissionListForWebsite(space, loginUser);
             if (!permissionList.contains(SpaceUserPermissionConstant.PICTURE_EDIT)) {
                 log.error("没有图片编辑权限，拒绝握手");
                 return false;
