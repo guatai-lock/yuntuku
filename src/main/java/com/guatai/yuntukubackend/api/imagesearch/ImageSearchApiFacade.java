@@ -32,7 +32,7 @@ public class ImageSearchApiFacade {
 
     public static void main(String[] args) {
         // 测试以图搜图功能
-        String imageUrl = "https://guatai1-1409680085.cos.ap-guangzhou.myqcloud.com/public/2030604651874672641/2026-03-16_FocJB26E5D5OSuD1.webp";
+        String imageUrl = "https://example.com/test-image.webp";
         List<ImageSearchResult> resultList = searchImage(imageUrl);
         System.out.println("结果列表" + resultList);
     }

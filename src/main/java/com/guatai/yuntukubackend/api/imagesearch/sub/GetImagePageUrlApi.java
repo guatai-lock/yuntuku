@@ -78,7 +78,7 @@ public class GetImagePageUrlApi {
     public static void main(String[] args) {
         // 测试以图搜图功能
         //String imageUrl = "https://www.codefather.cn/logo.png";
-        String imageUrl = "https://guatai1-1409680085.cos.ap-guangzhou.myqcloud.com/public/2030604651874672641/2026-03-09_HYMi4yYpcaaCyWzR.png";
+        String imageUrl = "https://example.com/test-image.png";
         String result = getImagePageUrl(imageUrl);
         System.out.println("搜索成功，结果 URL：" + result);
     }
